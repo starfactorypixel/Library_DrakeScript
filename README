@@ -1,0 +1,39 @@
+
+```cpp
+#include <DrakeScriptCore.hpp>
+
+DrakeScriptMapping ScriptMapObj;
+DrakeScriptCore ScriptObj(ScriptMapObj);
+
+static constexpr uint16_t SCRIPTS_COUNT = 2048;
+static constexpr uint32_t PSRAM_MALLOC_SIZE = SCRIPTS_COUNT * 512;
+
+uint8_t *script_data = nullptr;
+
+void Setup()
+{
+	// Выделяем память под скрипты. Любой массив фиксированного размера.
+	script_data = (uint8_t *)heap_caps_malloc(PSRAM_MALLOC_SIZE, MALLOC_CAP_SPIRAM);
+	if(!script_data)
+	{
+		DEBUG_LOG_TOPIC("PSRAM", "PSRAM alloc failed\n");
+		return;
+	}
+
+	// Добавляем скрипт в карту скриптов в массиве script_data
+	ScriptMapObj.AddScriptMap(script_id, psram_write_offset, script_length);
+
+	// Передаём мапперу указатель на массив скриптов
+	ScriptMapObj.SetScriptsArray(script_data, PSRAM_MALLOC_SIZE);
+
+	// Добавляем доп. опкоды.
+	ScriptObj.RegCustomOpcode((opcode_idx_t)0xA0, TestOpcode);
+	ScriptObj.RegCustomOpcode((opcode_idx_t)0xA1, TestOpcode);
+}
+
+void Logic()
+{
+	// Выполняем скрипты для id, передавая trigger data в качестве параметров
+	ScriptLogic::ScriptObj.Trigger(id, obj.data, obj.length);
+}
+```

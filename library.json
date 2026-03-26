@@ -1,0 +1,13 @@
+{
+  "name": "DrakeScript",
+  "description": "",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/starfactorypixel/Library_DrakeScript.git"
+  },
+  "headers": [
+    "DrakeScriptCore.hpp",
+    "DrakeScriptMapping.hpp"
+  ]
+}
