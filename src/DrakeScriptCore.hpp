@@ -1,6 +1,6 @@
 #pragma once
 #include <inttypes.h>
-#include "DrakeScriptMapping.hpp"
+#include "DrakeScriptMappingInterface.hpp"
 #include "DrakeScriptRegisters.hpp"
 #include "DrakeScriptOperators.hpp"
 
@@ -14,7 +14,7 @@ class DrakeScriptCore
 	
 	public:
 		
-		DrakeScriptCore(DrakeScriptMapping &map) : _mapping(map), _trigger_data{}, _custom_opcode{}
+		DrakeScriptCore(DrakeScriptMappingInterface &map) : _mapping(map), _trigger_data{}, _custom_opcode{}
 		{}
 		
 		void RegCustomOpcode(opcode_idx_t opcode, opcode_func_t func)
@@ -521,7 +521,7 @@ class DrakeScriptCore
 			return;
 		}
 		
-		DrakeScriptMapping &_mapping;
+		DrakeScriptMappingInterface &_mapping;
 		DrakeScriptRegisters _registers;
 		
 		struct trigger_data_t
