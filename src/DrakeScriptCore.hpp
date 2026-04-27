@@ -95,10 +95,9 @@ class DrakeScriptCore
 				case OP_ScriptInit:
 				{
 					ScriptInit_t *obj = (ScriptInit_t *) bytes;
-
-					_registers.RegisterAllClear();
 					
-					_registers.RegisterSet(_registers.REG_SCRIPT_ID, _trigger_data.script_id);
+					_registers.RegisterAllClear();
+					_registers.Register(_registers.REG_SCRIPT_ID) = _trigger_data.script_id;
 					
 					if(obj->mode == 0)
 					{
@@ -512,7 +511,8 @@ class DrakeScriptCore
 		{
 			uint8_t *script_ptr = nullptr;
 			uint16_t script_length = 0;
-			if(_mapping.GetScriptPtr(script_id, script_ptr, script_length) == false) return;
+			if(_mapping.GetScriptPtr(script_id, script_ptr, script_length) == false)
+				return;
 			
 			ScriptInit_t *obj = (ScriptInit_t *) script_ptr;
 			obj->mode = mode;
