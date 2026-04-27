@@ -128,14 +128,7 @@ class DrakeScriptCore
 				{
 					SetScriptArgVal_t *obj = (SetScriptArgVal_t *) bytes;
 					
-					uint8_t data[4] = 
-					{
-						obj->data1, 
-						obj->data2, 
-						obj->data3, 
-						obj->data4 
-					};
-					_SetScriptArg(obj->script_id, 0, data);
+					_SetScriptArg(obj->script_id, 0, obj->data);
 					
 					offset += sizeof(*obj);
 					break;

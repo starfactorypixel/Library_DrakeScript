@@ -10,43 +10,43 @@ namespace DrakeScript
 	enum opcode_idx_t : uint8_t
 	{
 		OP_ScriptInit = 0x01,
-		OP_TriggerParseReg = 0x55,
-		OP_SetScriptArgVal = 0x02,
-		OP_SetScriptArgReg8 = 0x03,
-		OP_SetScriptArgReg32 = 0x04,
-		OP_IfRegValEqu = 0x05,
-		OP_IfRegValNeq = 0x06,
-		OP_IfRegValLss = 0x07,
-		OP_IfRegValLeq = 0x08,
-		OP_IfRegValGtr = 0x09,
-		OP_IfRegValGeq = 0x0A,
-		OP_IfRegRegEqu = 0x0B,
-		OP_IfRegReglNeq = 0x0C,
-		OP_IfRegRegLss = 0x0D,
-		OP_IfRegRegLeq = 0x0E,
-		OP_IfRegRegGtr = 0x0F,
-		OP_IfRegRegGeq = 0x10,
-		OP_SetRegVal = 0x11,
-		OP_SetRegReg = 0x12,
-		OP_IncReg = 0x13,
-		OP_DecReg = 0x14,
-		OP_NotReg = 0x34,
-		OP_ShiftLeftReg = 0x19,
-		OP_ShiftRightReg = 0x1A,
-		OP_AndRegVal = 0x30,
-		OP_AndRegReg = 0x31,
-		OP_OrRegVal = 0x32,
-		OP_OrRegReg = 0x33,
-		OP_AddRegVal = 0x15,
-		OP_SubRegVal = 0x16,
-		OP_MulRegVal = 0x17,
-		OP_DivRegVal = 0x18,
-		OP_AddRegReg = 0x1F,
-		OP_SubRegReg = 0x20,
-		OP_MulRegReg = 0x21,
-		OP_DivRegReg = 0x22,
-		OP_Goto = 0x1D,
-		OP_Exit = 0x1E,
+		OP_TriggerParseReg = 0x02,
+		OP_SetScriptArgVal = 0x03,
+		OP_SetScriptArgReg8 = 0x04,
+		OP_SetScriptArgReg32 = 0x05,
+		OP_IfRegValEqu = 0x06,
+		OP_IfRegValNeq = 0x07,
+		OP_IfRegValLss = 0x08,
+		OP_IfRegValLeq = 0x09,
+		OP_IfRegValGtr = 0x0A,
+		OP_IfRegValGeq = 0x0B,
+		OP_IfRegRegEqu = 0x0C,
+		OP_IfRegReglNeq = 0x0D,
+		OP_IfRegRegLss = 0x0E,
+		OP_IfRegRegLeq = 0x0F,
+		OP_IfRegRegGtr = 0x10,
+		OP_IfRegRegGeq = 0x11,
+		OP_SetRegVal = 0x12,
+		OP_SetRegReg = 0x13,
+		OP_IncReg = 0x14,
+		OP_DecReg = 0x15,
+		OP_NotReg = 0x16,
+		OP_ShiftLeftReg = 0x17,
+		OP_ShiftRightReg = 0x18,
+		OP_AndRegVal = 0x19,
+		OP_AndRegReg = 0x1A,
+		OP_OrRegVal = 0x1B,
+		OP_OrRegReg = 0x1C,
+		OP_AddRegVal = 0x1D,
+		OP_SubRegVal = 0x1E,
+		OP_MulRegVal = 0x1F,
+		OP_DivRegVal = 0x20,
+		OP_AddRegReg = 0x21,
+		OP_SubRegReg = 0x22,
+		OP_MulRegReg = 0x23,
+		OP_DivRegReg = 0x24,
+		OP_Goto = 0x27,
+		OP_Exit = 0x28,
 	};
 
 	enum var_type_t : uint8_t
@@ -80,10 +80,7 @@ namespace DrakeScript
 	{
 		uint8_t opcode;
 		uint16_t script_id;
-		uint8_t data1;
-		uint8_t data2;
-		uint8_t data3;
-		uint8_t data4;
+		uint8_t data[4];
 	};
 
 	struct __attribute__((packed)) SetScriptArgReg8_t
