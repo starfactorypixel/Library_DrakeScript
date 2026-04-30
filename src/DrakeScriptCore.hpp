@@ -101,15 +101,15 @@ class DrakeScriptCore
 					
 					if(obj->mode == 0)
 					{
-						_registers.Register(_registers.REG_PARAM0) = obj->data[0];
-						_registers.Register(_registers.REG_PARAM1) = obj->data[1];
-						_registers.Register(_registers.REG_PARAM2) = obj->data[2];
-						_registers.Register(_registers.REG_PARAM3) = obj->data[3];
+						_registers.Register(_registers.REG_DATA1) = obj->data[0];
+						_registers.Register(_registers.REG_DATA2) = obj->data[1];
+						_registers.Register(_registers.REG_DATA3) = obj->data[2];
+						_registers.Register(_registers.REG_DATA4) = obj->data[3];
 					}
 					else
 					{
 						int32_t value = obj->data[0] | (obj->data[1] << 8) | (obj->data[2] << 16) | (obj->data[3] << 24);
-						_registers.Register(_registers.REG_PARAM0) = value;
+						_registers.Register(_registers.REG_DATA1) = value;
 					}
 					
 					offset += sizeof(*obj);

@@ -394,10 +394,6 @@ namespace DrakeScript
 				*(int32_t *)dst = (int32_t)val;
 				return 4;
 			}
-			default:
-			{
-				return 0;
-			}
 		}
 
 		return 0;

@@ -12,10 +12,10 @@ class DrakeScriptRegisters
 			REG_DUMMY = 0,
 
 			REG_SCRIPT_ID = 1,
-			REG_PARAM0 = 2,
-			REG_PARAM1 = 3,
-			REG_PARAM2 = 4,
-			REG_PARAM3 = 5,
+			REG_DATA1 = 2,
+			REG_DATA2 = 3,
+			REG_DATA3 = 4,
+			REG_DATA4 = 5,
 
 			REG_A = 6,
 			REG_B = 7,
