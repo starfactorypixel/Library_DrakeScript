@@ -9,6 +9,13 @@ class DrakeScriptMappingInterface
 		
 	protected:
 		
+		void Init()
+		{
+			memset(_scripts_map, 0x00, sizeof(_scripts_map));
+
+			return;
+		}
+		
 		static constexpr uint16_t _max_scripts_count = 2048;
 		
 		struct script_map_t

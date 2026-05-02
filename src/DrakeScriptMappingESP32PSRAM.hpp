@@ -11,9 +11,18 @@ class DrakeScriptMappingESP32PSRAM : public DrakeScriptMappingInterface
 		
 		bool Init()
 		{
+			DrakeScriptMappingInterface::Init();
 			_psram_data = (uint8_t *)heap_caps_malloc(_psram_size, MALLOC_CAP_SPIRAM);
-
+			
 			return (_psram_data != nullptr);
+		}
+		
+		void ReInit()
+		{
+			DrakeScriptMappingInterface::Init();
+			_psram_data_offset = 0;
+
+			return;
 		}
 		
 		// Скопировать тело скрипта в PSRAM блок
