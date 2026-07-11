@@ -47,6 +47,7 @@ namespace DrakeScript
 		OP_DivRegReg = 0x24,
 		OP_Goto = 0x27,
 		OP_Exit = 0x28,
+		OP_Run = 0x29,
 	};
 
 	enum var_type_t : uint8_t
@@ -310,6 +311,11 @@ namespace DrakeScript
 	struct __attribute__((packed)) Exit_t
 	{
 		uint8_t opcode;
+	};
+	struct __attribute__((packed)) Run_t
+	{
+		uint8_t opcode;
+		uint16_t script_id;
 	};
 	
 	

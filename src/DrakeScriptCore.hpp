@@ -473,6 +473,12 @@ class DrakeScriptCore
 					offset = UINT16_MAX;
 					break;
 				}
+				case OP_Run:
+				{
+					Run_t *obj = (Run_t *) bytes;
+					// Нужно придумать логику
+					break;
+				}
 				default:
 				{
 
