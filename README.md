@@ -2,39 +2,77 @@
 
 ```cpp
 #include <DrakeScriptCore.hpp>
+#include <DrakeScriptMappingESP32PSRAM.hpp>
 
-DrakeScriptMapping ScriptMapObj;
+DrakeScriptMappingESP32PSRAM<(1024 * 1024)> ScriptMapObj;
 DrakeScriptCore ScriptObj(ScriptMapObj);
-
-static constexpr uint16_t SCRIPTS_COUNT = 2048;
-static constexpr uint32_t PSRAM_MALLOC_SIZE = SCRIPTS_COUNT * 512;
-
-uint8_t *script_data = nullptr;
 
 void Setup()
 {
-	// Выделяем память под скрипты. Любой массив фиксированного размера.
-	script_data = (uint8_t *)heap_caps_malloc(PSRAM_MALLOC_SIZE, MALLOC_CAP_SPIRAM);
-	if(!script_data)
-	{
-		DEBUG_LOG_TOPIC("PSRAM", "PSRAM alloc failed\n");
-		return;
-	}
+	// Инициалиризуем PSRAM
+	ScriptMapObj.Init();
 
-	// Добавляем скрипт в карту скриптов в массиве script_data
-	ScriptMapObj.AddScriptMap(script_id, psram_write_offset, script_length);
-
-	// Передаём мапперу указатель на массив скриптов
-	ScriptMapObj.SetScriptsArray(script_data, PSRAM_MALLOC_SIZE);
+	// Копируем скрипты в PSRAM и добавляем их в карту скриптов
+	ScriptMapObj.AddScript(id1, data1, length1);
+	ScriptMapObj.AddScript(id2, data2, length2);
 
 	// Добавляем доп. опкоды.
 	ScriptObj.RegCustomOpcode((opcode_idx_t)0xA0, TestOpcode);
 	ScriptObj.RegCustomOpcode((opcode_idx_t)0xA1, TestOpcode);
+	
+	return;
 }
 
 void Logic()
 {
 	// Выполняем скрипты для id, передавая trigger data в качестве параметров
 	ScriptLogic::ScriptObj.Trigger(id, obj.data, obj.length);
+
+	return;
+}
+
+struct __attribute__((packed)) MyOpcodeOne_t
+{
+	uint8_t opcode;
+	reg_idx_t reg1;
+	reg_idx_t reg2;
+	uint16_t to_addr;
+};
+
+struct __attribute__((packed)) MyOpcodeTwo_t
+{
+	uint8_t opcode;
+	reg_idx_t reg1;
+	reg_idx_t reg2;
+	uint16_t to_addr;
+};
+
+void TestOpcode(DrakeScriptRegisters &registers, const uint8_t *bytes, uint16_t &offset)
+{
+	opcode_idx_t opcode = (opcode_idx_t)bytes[0];
+	
+	switch(opcode)
+	{
+		case 0xA0:
+		{
+			MyOpcodeOne_t *obj = (MyOpcodeOne_t *) bytes;
+
+			// Логика опкода
+
+			offset += sizeof(*obj);
+			break;
+		}
+		case 0xA1:
+		{
+			MyOpcodeTwo_t *obj = (MyOpcodeTwo_t *) bytes;
+
+			// Логика опкода
+
+			offset += sizeof(*obj);
+			break;
+		}
+	}
+	
+	return;
 }
 ```
