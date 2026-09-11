@@ -12,9 +12,16 @@ class DrakeScriptCore
 	
 	using opcode_func_t = void (*)(DrakeScriptRegisters &registers, const uint8_t *bytes, uint16_t &offset);
 	
+	enum ctrl_t : uint8_t
+	{
+		CTRL_NORMAL = 0,			// Нормальный режим
+		CTRL_EXIT,					// Выход из скрипта
+		CTRL_JUMP_SCRIPT,			// Переход на новый скрипт. Новый id скрипта записываетися в _trigger.id
+	};
+	
 	public:
 		
-		DrakeScriptCore(DrakeScriptMappingInterface &map) : _mapping(map), _trigger_data{}, _custom_opcode{}
+		DrakeScriptCore(DrakeScriptMappingInterface &map) : _mapping(map), _trigger{}, _custom_opcode{}
 		{}
 		
 		void RegCustomOpcode(opcode_idx_t opcode, opcode_func_t func)
@@ -45,38 +52,52 @@ class DrakeScriptCore
 
 		/*
 			Триггер запуска скрипта
-			 - `uint16_t script_id` - ID скрипта, например CAN ID;
+			 - `uint16_t id` - ID скрипта, например CAN ID;
 			 - `const uint8_t *data` - Данные передаваемые в скрипт для парсинга, например данные CAN;
 			 - `uint8_t length` - Длина данных;
 		*/
-		void Trigger(uint16_t script_id, const uint8_t *data, uint8_t length)
+		void Trigger(uint16_t id, const uint8_t *data, uint8_t length)
 		{
-			uint8_t *script_ptr = nullptr;
-			uint16_t script_length = 0;
-			if(_mapping.GetScriptPtr(script_id, script_ptr, script_length) == false) return;
+			_trigger.id = id;
+			_trigger.ctrl = CTRL_NORMAL;
+			_trigger.length = length;
+			_trigger.data = data;
 			
-			_trigger_data.script_id = script_id;
-			_trigger_data.data = data;
-			_trigger_data.length = length;
-			
-			_RunScript(script_ptr, script_length);
+			_RunScript();
 			
 			return;
 		}
 		
 	private:
 		
-		void _RunScript(uint8_t *script_ptr, uint16_t script_length)
+		void _RunScript()
 		{
-			uint8_t *pointer = nullptr;
-			uint16_t offset = 0;
+			uint8_t *script_ptr = nullptr;
+			uint16_t script_length = 0;
+			if(_mapping.GetScriptPtr(_trigger.id, script_ptr, script_length) == false) return;
 
-			do
+			uint16_t offset = 0;
+			while(offset < script_length)
 			{
-				pointer = &script_ptr[offset];
+				uint8_t *pointer = &script_ptr[offset];
+				ctrl_t ctrl = CTRL_NORMAL;
 				_RunOpcode(pointer, offset);
-			
-			} while(offset < script_length);
+				
+				switch(_trigger.ctrl)
+				{
+					case CTRL_EXIT:
+					{
+						return;
+					};
+					case CTRL_JUMP_SCRIPT:
+					{
+						if(_mapping.GetScriptPtr(_trigger.id, script_ptr, script_length) == false) return;
+						offset = 0;
+						
+						break;
+					};
+				}
+			}
 			
 			return;
 		}
@@ -97,7 +118,7 @@ class DrakeScriptCore
 					ScriptInit_t *obj = (ScriptInit_t *) bytes;
 					
 					_registers.RegisterAllClear();
-					_registers.Register(_registers.REG_SCRIPT_ID) = _trigger_data.script_id;
+					_registers.Register(_registers.REG_SCRIPT_ID) = _trigger.id;
 					
 					if(obj->mode == 0)
 					{
@@ -119,7 +140,7 @@ class DrakeScriptCore
 				{
 					TriggerParseReg_t *obj = (TriggerParseReg_t *) bytes;
 
-					_registers.Register(obj->reg1) = read_i32_fast(&_trigger_data.data[obj->offset], obj->type);
+					_registers.Register(obj->reg1) = read_i32_fast(&_trigger.data[obj->offset], obj->type);
 					
 					offset += sizeof(*obj);
 					break;
@@ -470,35 +491,37 @@ class DrakeScriptCore
 				{
 					Exit_t *obj = (Exit_t *) bytes;
 					
-					offset = UINT16_MAX;
+					_trigger.ctrl = CTRL_EXIT;
+					
+					offset += sizeof(*obj);
 					break;
 				}
 				case OP_Run:
 				{
 					Run_t *obj = (Run_t *) bytes;
-					// Нужно придумать логику
+					
+					_trigger.id = obj->script_id;
+					_trigger.ctrl = CTRL_JUMP_SCRIPT;
+					
+					offset += sizeof(*obj);
 					break;
 				}
 				default:
 				{
-
-					// Поиск пользовательских опкодов
-					uint16_t old_offset = offset;
 					for(auto &obj : _custom_opcode)
 					{
 						if(obj.opcode == opcode)
 						{
+							uint16_t old_offset = offset;
 							obj.func(_registers, bytes, offset);
+							if(old_offset == offset)
+							{
+								_trigger.ctrl = CTRL_EXIT;
+							}
+							
 							break;
 						}
 					}
-					
-					if(old_offset == offset)
-					{
-						offset = UINT16_MAX;
-						break;
-					}
-					
 					break;
 				}
 			}
@@ -506,11 +529,14 @@ class DrakeScriptCore
 			return;
 		}
 		
-		void _SetScriptArg(uint16_t script_id, uint8_t mode, uint8_t *data)													// Сделать саморедактирование, например по 0xFFFF
+		void _SetScriptArg(uint16_t id, uint8_t mode, uint8_t *data)
 		{
+			// Если указанный id == 0xFFFF то саморедактирование
+			if(id == 0xFFFF) id = _trigger.id;
+			
 			uint8_t *script_ptr = nullptr;
 			uint16_t script_length = 0;
-			if(_mapping.GetScriptPtr(script_id, script_ptr, script_length) == false)
+			if(_mapping.GetScriptPtr(id, script_ptr, script_length) == false)
 				return;
 			
 			ScriptInit_t *obj = (ScriptInit_t *) script_ptr;
@@ -523,12 +549,13 @@ class DrakeScriptCore
 		DrakeScriptMappingInterface &_mapping;
 		DrakeScriptRegisters _registers;
 		
-		struct trigger_data_t
+		struct trigger_t
 		{
-			uint16_t script_id;
-			const uint8_t *data;
-			uint8_t length;
-		} _trigger_data;
+			uint16_t id;			// ID выполняемого скрипта
+			ctrl_t ctrl;			// Расширенное управление
+			uint8_t length;			// Длина данных триггера
+			const uint8_t *data;	// Данные триггера
+		} _trigger;
 		
 		struct custom_opcode_t
 		{
