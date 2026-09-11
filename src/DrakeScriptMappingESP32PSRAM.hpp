@@ -32,7 +32,7 @@ class DrakeScriptMappingESP32PSRAM : public DrakeScriptMappingInterface
 			if(_psram_data_offset + length > _psram_size) return false;
 
 			memcpy(&_psram_data[_psram_data_offset], array, length);
-			_scripts_map[id] = {_psram_data_offset, length, 1};
+			_scripts_map[id] = {_psram_data_offset, length, MODE_ENABLED};
 			_psram_data_offset += length;
 
 			return true;
@@ -43,7 +43,7 @@ class DrakeScriptMappingESP32PSRAM : public DrakeScriptMappingInterface
 		{
 			if(id >= _max_scripts_count) return false;
 			auto &obj = _scripts_map[id];
-			if(obj.mode <= 0) return false;
+			if(obj.mode != MODE_ENABLED) return false;
 			
 			array_ptr = &_psram_data[obj.start_idx];
 			length = obj.length;
