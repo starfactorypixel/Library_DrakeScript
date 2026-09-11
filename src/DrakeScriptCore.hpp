@@ -256,9 +256,9 @@ class DrakeScriptCore
 					
 					break;
 				}
-				case OP_IfRegReglNeq:
+				case OP_IfRegRegNeq:
 				{
-					IfRegReglNeq_t *obj = (IfRegReglNeq_t *) bytes;
+					IfRegRegNeq_t *obj = (IfRegRegNeq_t *) bytes;
 					
 					offset += sizeof(*obj);
 					if(!(_registers.Register(obj->reg1) != _registers.Register(obj->reg2)))
@@ -505,6 +505,63 @@ class DrakeScriptCore
 					offset += sizeof(*obj);
 					break;
 				}
+
+
+				case OP_XorRegVal:
+				{
+					XorRegVal_t *obj = (XorRegVal_t *) bytes;
+					
+					_registers.Register(obj->reg1) ^= obj->value;
+					
+					offset += sizeof(*obj);
+					break;
+				}
+				case OP_XorRegReg:
+				{
+					XorRegReg_t *obj = (XorRegReg_t *) bytes;
+					
+					_registers.Register(obj->reg1) ^= _registers.Register(obj->reg2);
+					
+					offset += sizeof(*obj);
+					break;
+				}
+
+				case OP_ModRegVal:
+				{
+					ModRegVal_t *obj = (ModRegVal_t *) bytes;
+					
+					_registers.Register(obj->reg1) %= obj->value;
+					
+					offset += sizeof(*obj);
+					break;
+				}
+				case OP_ModRegReg:
+				{
+					ModRegReg_t *obj = (ModRegReg_t *) bytes;
+					
+					_registers.Register(obj->reg1) %= _registers.Register(obj->reg2);
+					
+					offset += sizeof(*obj);
+					break;
+				}
+				case OP_NegReg:
+				{
+					NegReg_t *obj = (NegReg_t *) bytes;
+					
+					_registers.Register(obj->reg1) = -_registers.Register(obj->reg1);
+					
+					offset += sizeof(*obj);
+					break;
+				}
+
+
+
+
+
+
+
+
+
 				default:
 				{
 					for(auto &obj : _custom_opcode)

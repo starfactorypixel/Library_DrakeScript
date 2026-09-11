@@ -21,7 +21,7 @@ namespace DrakeScript
 		OP_IfRegValGtr = 0x0A,
 		OP_IfRegValGeq = 0x0B,
 		OP_IfRegRegEqu = 0x0C,
-		OP_IfRegReglNeq = 0x0D,
+		OP_IfRegRegNeq = 0x0D,
 		OP_IfRegRegLss = 0x0E,
 		OP_IfRegRegLeq = 0x0F,
 		OP_IfRegRegGtr = 0x10,
@@ -48,6 +48,12 @@ namespace DrakeScript
 		OP_Goto = 0x27,
 		OP_Exit = 0x28,
 		OP_Run = 0x29,
+
+		OP_XorRegVal = 0x30,
+		OP_XorRegReg = 0x31,
+		OP_ModRegVal = 0x32,
+		OP_ModRegReg = 0x33,
+		OP_NegReg = 0x34,
 	};
 
 	enum var_type_t : uint8_t
@@ -153,7 +159,7 @@ namespace DrakeScript
 		reg_idx_t reg2;
 		uint16_t to_addr;
 	};
-	struct __attribute__((packed)) IfRegReglNeq_t
+	struct __attribute__((packed)) IfRegRegNeq_t
 	{
 		uint8_t opcode;
 		reg_idx_t reg1;
@@ -318,6 +324,37 @@ namespace DrakeScript
 		uint16_t script_id;
 	};
 	
+	struct __attribute__((packed)) XorRegVal_t
+	{
+		uint8_t opcode;
+		reg_idx_t reg1;
+		reg_type_t value;
+	};
+	struct __attribute__((packed)) XorRegReg_t
+	{
+		uint8_t opcode;
+		reg_idx_t reg1;
+		reg_idx_t reg2;
+	};
+
+	struct __attribute__((packed)) ModRegVal_t
+	{
+		uint8_t opcode;
+		reg_idx_t reg1;
+		reg_type_t value;
+	};
+	struct __attribute__((packed)) ModRegReg_t
+	{
+		uint8_t opcode;
+		reg_idx_t reg1;
+		reg_idx_t reg2;
+	};
+
+	struct __attribute__((packed)) NegReg_t
+	{
+		uint8_t opcode;
+		reg_idx_t reg1;
+	};
 	
 	static inline reg_type_t read_i32_fast(const uint8_t *data, var_type_t type)
 	{
