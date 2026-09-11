@@ -80,7 +80,6 @@ class DrakeScriptCore
 			while(offset < script_length)
 			{
 				uint8_t *pointer = &script_ptr[offset];
-				ctrl_t ctrl = CTRL_NORMAL;
 				_RunOpcode(pointer, offset);
 				
 				switch(_trigger.ctrl)
