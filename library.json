@@ -8,6 +8,7 @@
   },
   "headers": [
     "DrakeScriptCore.hpp",
-    "DrakeScriptMapping.hpp"
+    "DrakeScriptMappingRaw.hpp",
+    "DrakeScriptMappingESP32PSRAM.hpp"
   ]
 }
