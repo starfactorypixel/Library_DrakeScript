@@ -5,10 +5,12 @@ class DrakeScriptMappingInterface
 {
 	public:
 		
-		enum mode_t : uint8_t
+		enum state_t : int8_t
 		{
-			MODE_DISABLED,
-			MODE_ENABLED,
+			STATE_DISABLED_LOOP = -2,		// Отключен по причине зацикливания
+			STATE_DISABLED = -1,			// Отключен
+			STATE_NONE = 0,					// Не загружен
+			STATE_ENABLED = 1,				// Включён
 		};
 		
 		virtual bool GetScriptPtr(uint16_t id, uint8_t *&array_ptr, uint16_t &length, bool always = false) = 0;
@@ -18,17 +20,17 @@ class DrakeScriptMappingInterface
 			if(id >= _max_scripts_count) return;
 			
 			auto &obj = _scripts_map[id];
-			obj.mode = MODE_ENABLED;
+			obj.state = STATE_ENABLED;
 
 			return;
 		}
 		
-		void DisableScript(uint16_t id)
+		void DisableScript(uint16_t id, state_t state = STATE_DISABLED)
 		{
 			if(id >= _max_scripts_count) return;
 			
 			auto &obj = _scripts_map[id];
-			obj.mode = MODE_DISABLED;
+			obj.state = state;
 
 			return;
 		}
@@ -38,7 +40,15 @@ class DrakeScriptMappingInterface
 			if(id >= _max_scripts_count) return false;
 			
 			auto &obj = _scripts_map[id];
-			return obj.length > 0;
+			return (obj.state != STATE_NONE && obj.length > 0);
+		}
+
+		state_t GetState(uint16_t id)
+		{
+			if(id >= _max_scripts_count) return STATE_NONE;
+			
+			auto &obj = _scripts_map[id];
+			return obj.state;
 		}
 		
 	protected:
@@ -56,6 +66,6 @@ class DrakeScriptMappingInterface
 		{
 			uint32_t start_idx;			// Индекс начала скрипта
 			uint16_t length;			// Длина скрипта
-			mode_t mode;				// Режим работы скрипта
+			state_t state;				// Статус работы скрипта
 		} _scripts_map[_max_scripts_count];
 };

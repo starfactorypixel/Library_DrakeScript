@@ -21,7 +21,7 @@ class DrakeScriptMappingRaw : public DrakeScriptMappingInterface
 		{
 			if(id >= _max_scripts_count) return;
 
-			_scripts_map[id] = {start_idx, length, MODE_ENABLED};
+			_scripts_map[id] = {start_idx, length, STATE_ENABLED};
 
 			return;
 		}
@@ -31,7 +31,7 @@ class DrakeScriptMappingRaw : public DrakeScriptMappingInterface
 		{
 			if(id >= _max_scripts_count) return false;
 			auto &obj = _scripts_map[id];
-			if(always == false && obj.mode == MODE_DISABLED) return false;
+			if(always == false && obj.state != STATE_ENABLED) return false;
 			
 			array_ptr = &_scripts_array[obj.start_idx];
 			length = obj.length;

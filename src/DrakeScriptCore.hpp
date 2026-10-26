@@ -65,7 +65,10 @@ class DrakeScriptCore
 				_RunOpcode(pointer, offset);
 				
 				if(++_trigger.iter >= _max_iter_count)
+				{
+					_mapping.DisableScript(_trigger.id, _mapping.STATE_DISABLED_LOOP);
 					return;
+				}
 				
 				switch(_trigger.ctrl)
 				{
