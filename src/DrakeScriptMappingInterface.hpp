@@ -11,10 +11,12 @@ class DrakeScriptMappingInterface
 			MODE_ENABLED,
 		};
 		
-		virtual bool GetScriptPtr(uint16_t id, uint8_t *&array_ptr, uint16_t &length) = 0;
+		virtual bool GetScriptPtr(uint16_t id, uint8_t *&array_ptr, uint16_t &length, bool always = false) = 0;
 		
 		void EnableScript(uint16_t id)
 		{
+			if(id >= _max_scripts_count) return;
+			
 			auto &obj = _scripts_map[id];
 			obj.mode = MODE_ENABLED;
 
@@ -23,10 +25,20 @@ class DrakeScriptMappingInterface
 		
 		void DisableScript(uint16_t id)
 		{
+			if(id >= _max_scripts_count) return;
+			
 			auto &obj = _scripts_map[id];
 			obj.mode = MODE_DISABLED;
-			
+
 			return;
+		}
+		
+		bool IsLoaded(uint16_t id)
+		{
+			if(id >= _max_scripts_count) return false;
+			
+			auto &obj = _scripts_map[id];
+			return obj.length > 0;
 		}
 		
 	protected:
