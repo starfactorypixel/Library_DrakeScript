@@ -8,44 +8,25 @@ using namespace DrakeScript;
 
 class DrakeScriptCore
 {
-	static constexpr uint8_t MAX_CUSTOM_OPCODE = 16;
+	static constexpr uint16_t _max_iter_count = 1024;
 	
 	using opcode_func_t = void (*)(DrakeScriptRegisters &registers, const uint8_t *bytes, uint16_t &offset);
-	
+
 	enum ctrl_t : uint8_t
 	{
 		CTRL_NORMAL = 0,			// Нормальный режим
 		CTRL_EXIT,					// Выход из скрипта
-		CTRL_JUMP_SCRIPT,			// Переход на новый скрипт. Новый id скрипта записываетися в _trigger.id
+		CTRL_JUMP_SCRIPT,			// Переход на новый скрипт. Новый id скрипта записывается в _trigger.id
 	};
 	
 	public:
 		
-		DrakeScriptCore(DrakeScriptMappingInterface &map) : _mapping(map), _trigger{}, _custom_opcode{}
+		DrakeScriptCore(DrakeScriptMappingInterface &map) : _mapping(map), _trigger{}
 		{}
 		
-		void RegCustomOpcode(opcode_idx_t opcode, opcode_func_t func)
+		void SetCustomOpcodeFunc(opcode_func_t func)
 		{
-			for(auto &obj : _custom_opcode)
-			{
-				if(obj.opcode != 0x00) continue;
-				
-				obj = {opcode, func};
-				break;
-			}
-			
-			return;
-		}
-		
-		void DelCustomOpcode(opcode_idx_t opcode)
-		{
-			for(auto &obj : _custom_opcode)
-			{
-				if(obj.opcode != opcode) continue;
-				
-				obj = {(opcode_idx_t)0x00, nullptr};
-				break;
-			}
+			_custom_opcodes = func;
 			
 			return;
 		}
@@ -60,9 +41,10 @@ class DrakeScriptCore
 		{
 			_trigger.id = id;
 			_trigger.ctrl = CTRL_NORMAL;
+			_trigger.iter = 0;
 			_trigger.length = length;
 			_trigger.data = data;
-			
+
 			_RunScript();
 			
 			return;
@@ -81,6 +63,9 @@ class DrakeScriptCore
 			{
 				uint8_t *pointer = &script_ptr[offset];
 				_RunOpcode(pointer, offset);
+				
+				if(++_trigger.iter >= _max_iter_count)
+					return;
 				
 				switch(_trigger.ctrl)
 				{
@@ -103,7 +88,7 @@ class DrakeScriptCore
 		
 		/*
 			Запуск выполнения текущего опкода с параметрами
-			 - `const uint8_t *bytes` - указатель на начало опкода с парметрами;
+			 - `const uint8_t *bytes` - указатель на начало опкода с параметрами;
 			 - `uint16_t &offset` - смещение для расчёта следующего опкода, байт;
 		*/
 		void _RunOpcode(const uint8_t *bytes, uint16_t &offset)
@@ -558,20 +543,16 @@ class DrakeScriptCore
 				
 				default:
 				{
-					for(auto &obj : _custom_opcode)
+					if(_custom_opcodes != nullptr)
 					{
-						if(obj.opcode == opcode)
+						uint16_t old_offset = offset;
+						_custom_opcodes(_registers, bytes, offset);
+						if(old_offset == offset)
 						{
-							uint16_t old_offset = offset;
-							obj.func(_registers, bytes, offset);
-							if(old_offset == offset)
-							{
-								_trigger.ctrl = CTRL_EXIT;
-							}
-							
-							break;
+							_trigger.ctrl = CTRL_EXIT;
 						}
 					}
+					
 					break;
 				}
 			}
@@ -603,13 +584,10 @@ class DrakeScriptCore
 		{
 			uint16_t id;			// ID выполняемого скрипта
 			ctrl_t ctrl;			// Расширенное управление
+			uint16_t iter;			// Кол-во итераций скрипта
 			uint8_t length;			// Длина данных триггера
 			const uint8_t *data;	// Данные триггера
 		} _trigger;
-		
-		struct custom_opcode_t
-		{
-			opcode_idx_t opcode;
-			opcode_func_t func;
-		} _custom_opcode[MAX_CUSTOM_OPCODE];
+
+		opcode_func_t _custom_opcodes = nullptr;
 };
