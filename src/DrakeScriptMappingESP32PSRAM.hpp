@@ -39,11 +39,11 @@ class DrakeScriptMappingESP32PSRAM : public DrakeScriptMappingInterface
 		}
 
 		// Получить указатель на начало скрипта и его длину в байтах
-		virtual bool GetScriptPtr(uint16_t id, uint8_t *&array_ptr, uint16_t &length) override
+		virtual bool GetScriptPtr(uint16_t id, uint8_t *&array_ptr, uint16_t &length, bool always = false) override
 		{
 			if(id >= _max_scripts_count) return false;
 			auto &obj = _scripts_map[id];
-			if(obj.mode != MODE_ENABLED) return false;
+			if(always == false && obj.mode == MODE_DISABLED) return false;
 			
 			array_ptr = &_psram_data[obj.start_idx];
 			length = obj.length;
