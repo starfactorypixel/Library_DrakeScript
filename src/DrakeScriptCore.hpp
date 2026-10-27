@@ -136,7 +136,7 @@ class DrakeScriptCore
 				{
 					SetScriptArgVal_t *obj = (SetScriptArgVal_t *) bytes;
 					
-					_SetScriptArg(obj->script_id, 0, obj->data);
+					_SetScriptArg(obj->script_id, 0, obj->idx, obj->value);
 					
 					offset += sizeof(*obj);
 					break;
@@ -145,14 +145,7 @@ class DrakeScriptCore
 				{
 					SetScriptArgReg8_t *obj = (SetScriptArgReg8_t *) bytes;
 					
-					uint8_t data[4] = 
-					{
-						(uint8_t)(_registers.Register(obj->reg1)), 
-						(uint8_t)(_registers.Register(obj->reg2)), 
-						(uint8_t)(_registers.Register(obj->reg3)), 
-						(uint8_t)(_registers.Register(obj->reg4)) 
-					};
-					_SetScriptArg(obj->script_id, 0, data);
+					_SetScriptArg(obj->script_id, 0, obj->idx, _registers.Register(obj->reg1));
 					
 					offset += sizeof(*obj);
 					break;
@@ -161,14 +154,7 @@ class DrakeScriptCore
 				{
 					SetScriptArgReg32_t *obj = (SetScriptArgReg32_t *) bytes;
 					
-					uint8_t data[4] = 
-					{
-						(uint8_t)(_registers.Register(obj->reg1)), 
-						(uint8_t)(_registers.Register(obj->reg1) >> 8), 
-						(uint8_t)(_registers.Register(obj->reg1) >> 16), 
-						(uint8_t)(_registers.Register(obj->reg1) >> 24) 
-					};
-					_SetScriptArg(obj->script_id, 1, data);
+					_SetScriptArg(obj->script_id, 1, 0, _registers.Register(obj->reg1));
 					
 					offset += sizeof(*obj);
 					break;
@@ -563,19 +549,26 @@ class DrakeScriptCore
 			return;
 		}
 		
-		void _SetScriptArg(uint16_t id, uint8_t mode, uint8_t *data)
+		void _SetScriptArg(uint16_t id, uint8_t mode, uint8_t idx, reg_type_t value)
 		{
 			// Если указанный id == 0xFFFF то саморедактирование
 			if(id == 0xFFFF) id = _trigger.id;
 			
 			uint8_t *script_ptr = nullptr;
 			uint16_t script_length = 0;
-			if(_mapping.GetScriptPtr(id, script_ptr, script_length) == false)
-				return;
+			if(_mapping.GetScriptPtr(id, script_ptr, script_length) == false) return;
+			if(script_length < sizeof(ScriptInit_t)) return;
 			
 			ScriptInit_t *obj = (ScriptInit_t *) script_ptr;
-			obj->mode = mode;
-			memcpy(obj->data, data, sizeof(obj->data));
+			if(mode == 0)
+			{
+				if(idx >= sizeof(obj->data)) return;
+				obj->data[idx] = (uint8_t)value;
+			}
+			else
+			{
+				memcpy(obj->data, &value, sizeof(obj->data));
+			}
 			
 			return;
 		}

@@ -99,17 +99,16 @@ namespace DrakeScript
 	{
 		uint8_t opcode;
 		uint16_t script_id;
-		uint8_t data[4];
+		uint8_t idx;
+		uint8_t value;
 	};
 
 	struct __attribute__((packed)) SetScriptArgReg8_t
 	{
 		uint8_t opcode;
 		uint16_t script_id;
+		uint8_t idx;
 		reg_idx_t reg1;
-		reg_idx_t reg2;
-		reg_idx_t reg3;
-		reg_idx_t reg4;
 	};
 
 	struct __attribute__((packed)) SetScriptArgReg32_t
