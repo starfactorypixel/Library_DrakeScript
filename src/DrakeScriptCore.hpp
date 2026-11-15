@@ -21,7 +21,7 @@ class DrakeScriptCore
 	
 	public:
 		
-		DrakeScriptCore(DrakeScriptMappingInterface &map) : _mapping(map), _trigger{}
+		DrakeScriptCore(DrakeScriptMappingInterface &map) : _mapping(map), _trigger{}, _custom_opcodes(nullptr)
 		{}
 		
 		void SetCustomOpcodeFunc(opcode_func_t func)
@@ -41,10 +41,11 @@ class DrakeScriptCore
 		{
 			_trigger.id = id;
 			_trigger.ctrl = CTRL_NORMAL;
-			_trigger.iter = 0;
 			_trigger.length = length;
 			_trigger.data = data;
-
+			_trigger.jump = 0;
+			_trigger.iter = 0;
+			
 			_RunScript();
 			
 			return;
@@ -78,7 +79,7 @@ class DrakeScriptCore
 					};
 					case CTRL_JUMP_SCRIPT:
 					{
-						if(_mapping.GetScriptPtr(_trigger.id, script_ptr, script_length) == false) return;
+						if(_mapping.GetScriptPtr(_trigger.jump, script_ptr, script_length) == false) return;
 						offset = 0;
 						
 						break;
@@ -512,7 +513,7 @@ class DrakeScriptCore
 				{
 					Run_t *obj = (Run_t *) bytes;
 					
-					_trigger.id = obj->script_id;
+					_trigger.jump = obj->script_id;
 					_trigger.ctrl = CTRL_JUMP_SCRIPT;
 					
 					offset += sizeof(*obj);
@@ -580,10 +581,11 @@ class DrakeScriptCore
 		{
 			uint16_t id;			// ID выполняемого скрипта
 			ctrl_t ctrl;			// Расширенное управление
-			uint16_t iter;			// Кол-во итераций скрипта
 			uint8_t length;			// Длина данных триггера
 			const uint8_t *data;	// Данные триггера
+			uint16_t jump;			// ID перехода на другой скрипт
+			uint16_t iter;			// Кол-во итераций скрипта
 		} _trigger;
 
-		opcode_func_t _custom_opcodes = nullptr;
+		opcode_func_t _custom_opcodes;
 };
