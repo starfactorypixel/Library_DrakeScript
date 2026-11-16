@@ -39,13 +39,13 @@ class DrakeScriptCore
 		*/
 		void Trigger(uint16_t id, const uint8_t *data, uint8_t length)
 		{
-			_trigger.id = id;
+			_trigger.trig_id = id;
+			_trigger.trig_len = length;
+			_trigger.trig_data = data;
 			_trigger.ctrl = CTRL_NORMAL;
-			_trigger.length = length;
-			_trigger.data = data;
-			_trigger.jump = 0;
+			_trigger.now_id = id;
 			_trigger.iter = 0;
-			
+
 			_RunScript();
 			
 			return;
@@ -57,7 +57,7 @@ class DrakeScriptCore
 		{
 			uint8_t *script_ptr = nullptr;
 			uint16_t script_length = 0;
-			if(_mapping.GetScriptPtr(_trigger.id, script_ptr, script_length) == false) return;
+			if(_mapping.GetScriptPtr(_trigger.trig_id, script_ptr, script_length) == false) return;
 
 			uint16_t offset = 0;
 			while(offset < script_length)
@@ -67,7 +67,7 @@ class DrakeScriptCore
 				
 				if(++_trigger.iter >= _max_iter_count)
 				{
-					_mapping.DisableScript(_trigger.id, _mapping.STATE_DISABLED_LOOP);
+					_mapping.DisableScript(_trigger.trig_id, _mapping.STATE_DISABLED_LOOP);
 					return;
 				}
 				
@@ -79,7 +79,7 @@ class DrakeScriptCore
 					};
 					case CTRL_JUMP_SCRIPT:
 					{
-						if(_mapping.GetScriptPtr(_trigger.jump, script_ptr, script_length) == false) return;
+						if(_mapping.GetScriptPtr(_trigger.now_id, script_ptr, script_length) == false) return;
 						offset = 0;
 						
 						break;
@@ -106,7 +106,7 @@ class DrakeScriptCore
 					ScriptInit_t *obj = (ScriptInit_t *) bytes;
 					
 					_registers.RegisterAllClear();
-					_registers.Register(_registers.REG_SCRIPT_ID) = _trigger.id;
+					_registers.Register(_registers.REG_SCRIPT_ID) = _trigger.trig_id;
 					
 					if(obj->mode == 0)
 					{
@@ -128,7 +128,7 @@ class DrakeScriptCore
 				{
 					TriggerParseReg_t *obj = (TriggerParseReg_t *) bytes;
 
-					_registers.Register(obj->reg1) = read_i32_fast(&_trigger.data[obj->offset], obj->type);
+					_registers.Register(obj->reg1) = read_i32_fast(&_trigger.trig_data[obj->offset], obj->type);
 					
 					offset += sizeof(*obj);
 					break;
@@ -513,7 +513,7 @@ class DrakeScriptCore
 				{
 					Run_t *obj = (Run_t *) bytes;
 					
-					_trigger.jump = obj->script_id;
+					_trigger.now_id = obj->script_id;
 					_trigger.ctrl = CTRL_JUMP_SCRIPT;
 					
 					offset += sizeof(*obj);
@@ -553,8 +553,11 @@ class DrakeScriptCore
 		void _SetScriptArg(uint16_t id, uint8_t mode, uint8_t idx, reg_type_t value)
 		{
 			// Если указанный id == 0xFFFF то саморедактирование
-			if(id == 0xFFFF) id = _trigger.id;
-			
+			if(id == 0xFFFF) id = _trigger.now_id;
+
+			// Если указанный id == 0xFFFE то редактирование скрипта входа
+			if(id == 0xFFFE) id = _trigger.trig_id;
+
 			uint8_t *script_ptr = nullptr;
 			uint16_t script_length = 0;
 			if(_mapping.GetScriptPtr(id, script_ptr, script_length) == false) return;
@@ -579,12 +582,13 @@ class DrakeScriptCore
 		
 		struct trigger_t
 		{
-			uint16_t id;			// ID выполняемого скрипта
-			ctrl_t ctrl;			// Расширенное управление
-			uint8_t length;			// Длина данных триггера
-			const uint8_t *data;	// Данные триггера
-			uint16_t jump;			// ID перехода на другой скрипт
-			uint16_t iter;			// Кол-во итераций скрипта
+			uint16_t trig_id;			// ID скрипта при запуске
+			uint8_t trig_len;			// Длина данных триггера при запуске
+			const uint8_t *trig_data;	// Данные триггера при запуске
+
+			ctrl_t ctrl;				// Расширенное управление
+			uint16_t now_id;			// ID текущего скрипта
+			uint16_t iter;				// Кол-во итераций скрипта
 		} _trigger;
 
 		opcode_func_t _custom_opcodes;
