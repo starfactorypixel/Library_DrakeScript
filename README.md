@@ -17,8 +17,7 @@ void Setup()
 	ScriptMapObj.AddScript(id2, data2, length2);
 
 	// Добавляем доп. опкоды.
-	ScriptObj.RegCustomOpcode((opcode_idx_t)0xA0, TestOpcode);
-	ScriptObj.RegCustomOpcode((opcode_idx_t)0xA1, TestOpcode);
+	ScriptObj.SetCustomOpcodeFunc(TestOpcode);
 	
 	return;
 }
@@ -49,13 +48,13 @@ struct __attribute__((packed)) MyOpcodeTwo_t
 
 void TestOpcode(DrakeScriptRegisters &registers, const uint8_t *bytes, uint16_t &offset)
 {
-	opcode_idx_t opcode = (opcode_idx_t)bytes[0];
+	auto opcode = (const opcode_idx_t)bytes[0];
 	
 	switch(opcode)
 	{
 		case 0xA0:
 		{
-			MyOpcodeOne_t *obj = (MyOpcodeOne_t *) bytes;
+			auto obj = (const MyOpcodeOne_t *) bytes;
 
 			// Логика опкода
 
@@ -64,7 +63,7 @@ void TestOpcode(DrakeScriptRegisters &registers, const uint8_t *bytes, uint16_t 
 		}
 		case 0xA1:
 		{
-			MyOpcodeTwo_t *obj = (MyOpcodeTwo_t *) bytes;
+			auto obj = (const MyOpcodeTwo_t *) bytes;
 
 			// Логика опкода
 
