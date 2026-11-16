@@ -7,6 +7,7 @@ class DrakeScriptMappingInterface
 		
 		enum state_t : int8_t
 		{
+			STATE_DISABLED_UNKOP = -3,		// Отключено по причине отсутствующего оператора
 			STATE_DISABLED_LOOP = -2,		// Отключен по причине зацикливания
 			STATE_DISABLED = -1,			// Отключен
 			STATE_NONE = 0,					// Не загружен

@@ -108,20 +108,7 @@ class DrakeScriptCore
 					
 					_registers.RegisterAllClear();
 					_registers.Register(_registers.REG_SCRIPT_ID) = _trigger.trig_id;
-					
-					if(obj->mode == 0)
-					{
-						_registers.Register(_registers.REG_DATA1) = obj->data[0];
-						_registers.Register(_registers.REG_DATA2) = obj->data[1];
-						_registers.Register(_registers.REG_DATA3) = obj->data[2];
-						_registers.Register(_registers.REG_DATA4) = obj->data[3];
-					}
-					else
-					{
-						reg_type_t value;
-						memcpy(&value, obj->data, sizeof(value));
-						_registers.Register(_registers.REG_DATA1) = value;
-					}
+					_LoadDataReg(obj);
 					
 					offset += sizeof(*obj);
 					break;
@@ -543,14 +530,19 @@ class DrakeScriptCore
 				
 				default:
 				{
+					bool handled = false;
+					
 					if(_custom_opcodes != nullptr)
 					{
 						uint16_t old_offset = offset;
 						_custom_opcodes(_registers, bytes, offset);
-						if(old_offset == offset)
-						{
-							_trigger.ctrl = CTRL_EXIT;
-						}
+						handled = (offset != old_offset);
+					}
+					
+					if(handled == false)
+					{
+						_mapping.DisableScript(_trigger.now_id, _mapping.STATE_DISABLED_UNKOP);
+						_trigger.ctrl = CTRL_EXIT;
 					}
 					
 					break;
@@ -573,7 +565,7 @@ class DrakeScriptCore
 			if(_mapping.GetScriptPtr(id, script_ptr, script_length) == false) return;
 			if(script_length < sizeof(ScriptInit_t)) return;
 			
-			ScriptInit_t *obj = (ScriptInit_t *) script_ptr;
+			auto obj = (ScriptInit_t *) script_ptr;
 			if(mode == 0)
 			{
 				if(idx >= sizeof(obj->data)) return;
@@ -584,6 +576,28 @@ class DrakeScriptCore
 				memcpy(obj->data, &value, sizeof(obj->data));
 			}
 			
+			if(id == _trigger.now_id)
+				_LoadDataReg(obj);
+			
+			return;
+		}
+		
+		void _LoadDataReg(const ScriptInit_t *obj)
+		{
+			if(obj->mode == 0)
+			{
+				_registers.Register(_registers.REG_DATA0) = obj->data[0];
+				_registers.Register(_registers.REG_DATA1) = obj->data[1];
+				_registers.Register(_registers.REG_DATA2) = obj->data[2];
+				_registers.Register(_registers.REG_DATA3) = obj->data[3];
+			}
+			else
+			{
+				reg_type_t value;
+				memcpy(&value, obj->data, sizeof(value));
+				_registers.Register(_registers.REG_DATA0) = value;
+			}
+
 			return;
 		}
 		
