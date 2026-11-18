@@ -107,8 +107,8 @@ class DrakeScriptCore
 					auto obj = (const ScriptInit_t *) bytes;
 					
 					_registers.RegisterAllClear();
-					_registers.Register(_registers.REG_SCRIPT_ID) = _trigger.trig_id;
-					_LoadDataReg(obj);
+					_registers.Register(_registers.REG_TRIG_ID) = _trigger.trig_id;
+					_registers.Register(_registers.REG_NOW_ID) = _trigger.now_id;
 					
 					offset += sizeof(*obj);
 					break;
@@ -126,25 +126,25 @@ class DrakeScriptCore
 				{
 					auto obj = (const SetScriptArgVal_t *) bytes;
 					
-					_SetScriptArg(obj->script_id, 0, obj->idx, obj->value);
+					_SetScriptArg(obj->script_id, obj->type, obj->offset, obj->value);
 					
 					offset += sizeof(*obj);
 					break;
 				}
-				case OP_SetScriptArgReg8:
+				case OP_SetScriptArgReg:
 				{
-					auto obj = (const SetScriptArgReg8_t *) bytes;
+					auto obj = (const SetScriptArgReg_t *) bytes;
 					
-					_SetScriptArg(obj->script_id, 0, obj->idx, _registers.Register(obj->reg1));
+					_SetScriptArg(obj->script_id, obj->type, obj->offset, _registers.Register(obj->reg1));
 					
 					offset += sizeof(*obj);
 					break;
 				}
-				case OP_SetScriptArgReg32:
+				case OP_GetScriptArgReg:
 				{
-					auto obj = (const SetScriptArgReg32_t *) bytes;
+					auto obj = (const GetScriptArgReg_t *) bytes;
 					
-					_SetScriptArg(obj->script_id, 1, 0, _registers.Register(obj->reg1));
+					_GetScriptArg(obj->script_id, obj->type, obj->offset, _registers.Register(obj->reg1));
 					
 					offset += sizeof(*obj);
 					break;
@@ -552,7 +552,7 @@ class DrakeScriptCore
 			return;
 		}
 		
-		void _SetScriptArg(uint16_t id, uint8_t mode, uint8_t idx, reg_type_t value)
+		void _SetScriptArg(uint16_t id, var_type_t type, uint8_t offset, reg_type_t value)
 		{
 			// Если указанный id == 0xFFFF то саморедактирование
 			if(id == 0xFFFF) id = _trigger.now_id;
@@ -566,41 +566,41 @@ class DrakeScriptCore
 			if(script_length < sizeof(ScriptInit_t)) return;
 			
 			auto obj = (ScriptInit_t *) script_ptr;
-			if(mode == 0)
-			{
-				if(idx >= sizeof(obj->data)) return;
-				obj->data[idx] = (uint8_t)value;
-			}
-			else
-			{
-				memcpy(obj->data, &value, sizeof(obj->data));
-			}
 			
-			if(id == _trigger.now_id)
-				_LoadDataReg(obj);
+			uint32_t dummy; uint8_t len = write_i32_fast((uint8_t *)&dummy, 0, type);
+			
+			if(offset + len > sizeof(obj->data)) return;
+			
+			memcpy(obj->data + offset, &value, len);
 			
 			return;
 		}
 		
-		void _LoadDataReg(const ScriptInit_t *obj)
+		void _GetScriptArg(uint16_t id, var_type_t type, uint8_t offset, reg_type_t &value)
 		{
-			if(obj->mode == 0)
-			{
-				_registers.Register(_registers.REG_DATA0) = obj->data[0];
-				_registers.Register(_registers.REG_DATA1) = obj->data[1];
-				_registers.Register(_registers.REG_DATA2) = obj->data[2];
-				_registers.Register(_registers.REG_DATA3) = obj->data[3];
-			}
-			else
-			{
-				reg_type_t value;
-				memcpy(&value, obj->data, sizeof(value));
-				_registers.Register(_registers.REG_DATA0) = value;
-			}
+			// Если указанный id == 0xFFFF то саморедактирование
+			if(id == 0xFFFF) id = _trigger.now_id;
 
+			// Если указанный id == 0xFFFE то редактирование скрипта входа
+			if(id == 0xFFFE) id = _trigger.trig_id;
+
+			uint8_t *script_ptr = nullptr;
+			uint16_t script_length = 0;
+			if(_mapping.GetScriptPtr(id, script_ptr, script_length) == false) return;
+			if(script_length < sizeof(ScriptInit_t)) return;
+			
+			auto obj = (ScriptInit_t *) script_ptr;
+			
+			uint32_t dummy; uint8_t len = write_i32_fast((uint8_t *)&dummy, 0, type);
+			
+			if(offset + len > sizeof(obj->data)) return;
+			
+			value = 0;
+			memcpy(&value, obj->data + offset, len);
+			
 			return;
 		}
-		
+
 		DrakeScriptMappingInterface &_mapping;
 		DrakeScriptRegisters _registers;
 		

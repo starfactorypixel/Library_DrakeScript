@@ -12,8 +12,8 @@ namespace DrakeScript
 		OP_ScriptInit        = 0x01,
 		OP_TriggerParseReg   = 0x02,
 		OP_SetScriptArgVal   = 0x03,
-		OP_SetScriptArgReg8  = 0x04,
-		OP_SetScriptArgReg32 = 0x05,
+		OP_SetScriptArgReg   = 0x04,
+		OP_GetScriptArgReg   = 0x05,
 		// 0x06 - 0x0F reserved
 
 		OP_IfRegValEqu    = 0x10,
@@ -84,7 +84,7 @@ namespace DrakeScript
 	{
 		uint8_t opcode;
 		uint8_t mode;
-		uint8_t data[4];
+		uint8_t data[8];
 	};
 
 	struct __attribute__((packed)) TriggerParseReg_t
@@ -95,27 +95,31 @@ namespace DrakeScript
 		uint8_t offset;
 	};
 
-	struct __attribute__((packed)) SetScriptArgVal_t 
+	struct __attribute__((packed)) SetScriptArgVal_t
 	{
 		uint8_t opcode;
 		uint16_t script_id;
-		uint8_t idx;
-		uint8_t value;
+		var_type_t type;
+		uint8_t offset;
+		reg_type_t value;
 	};
 
-	struct __attribute__((packed)) SetScriptArgReg8_t
+	struct __attribute__((packed)) SetScriptArgReg_t
 	{
 		uint8_t opcode;
 		uint16_t script_id;
-		uint8_t idx;
+		var_type_t type;
+		uint8_t offset;
 		reg_idx_t reg1;
 	};
 
-	struct __attribute__((packed)) SetScriptArgReg32_t
+	struct __attribute__((packed)) GetScriptArgReg_t
 	{
 		uint8_t opcode;
-		uint16_t script_id;
 		reg_idx_t reg1;
+		uint16_t script_id;
+		var_type_t type;
+		uint8_t offset;
 	};
 	
 	

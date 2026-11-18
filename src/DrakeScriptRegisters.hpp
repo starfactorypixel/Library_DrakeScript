@@ -10,22 +10,23 @@ class DrakeScriptRegisters
 		enum reg_idx_t : uint8_t
 		{
 			REG_DUMMY = 0,
-
-			REG_SCRIPT_ID = 1,
-			REG_DATA0 = 2,
-			REG_DATA1 = 3,
-			REG_DATA2 = 4,
-			REG_DATA3 = 5,
-
-			REG_A = 6,
-			REG_B = 7,
-			REG_C = 8,
-			REG_D = 9,
-			REG_E = 10,
-			REG_F = 11,
-			REG_G = 12,
-			REG_H = 13,
-			REG_I = 14,
+			
+			REG_TRIG_ID = 1,
+			REG_NOW_ID = 2,
+			
+			REG_A = 3,
+			REG_B = 4,
+			REG_C = 5,
+			REG_D = 6,
+			REG_E = 7,
+			REG_F = 8,
+			REG_G = 9,
+			REG_H = 10,
+			REG_I = 11,
+			REG_J = 12,
+			REG_K = 13,
+			REG_L = 14,
+			REG_M = 15,
 		};
 		
 		DrakeScriptRegisters() : _registers{}
@@ -65,5 +66,5 @@ class DrakeScriptRegisters
 		
 	private:
 		
-		reg_type_t _registers[1 + 5 + 9];
+		reg_type_t _registers[1 + 2 + 13];
 };
