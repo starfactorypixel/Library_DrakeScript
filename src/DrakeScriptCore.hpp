@@ -86,6 +86,7 @@ class DrakeScriptCore
 						break;
 					};
 				}
+				_trigger.ctrl = CTRL_NORMAL;
 			}
 			
 			return;
