@@ -118,7 +118,8 @@ class DrakeScriptCore
 				{
 					auto obj = (const TriggerParseReg_t *) bytes;
 
-					_registers.Register(obj->reg1) = read_i32_fast(&_trigger.trig_data[obj->offset], obj->type);
+					if(obj->offset + get_type_size(obj->type) <= _trigger.trig_len)
+						_registers.Register(obj->reg1) = read_i32_fast(&_trigger.trig_data[obj->offset], obj->type);
 					
 					offset += sizeof(*obj);
 					break;
@@ -568,8 +569,7 @@ class DrakeScriptCore
 			
 			auto obj = (ScriptInit_t *) script_ptr;
 			
-			uint32_t dummy; uint8_t len = write_i32_fast((uint8_t *)&dummy, 0, type);
-			
+			uint8_t len = get_type_size(type);
 			if(offset + len > sizeof(obj->data)) return;
 			
 			memcpy(obj->data + offset, &value, len);
@@ -592,8 +592,7 @@ class DrakeScriptCore
 			
 			auto obj = (ScriptInit_t *) script_ptr;
 			
-			uint32_t dummy; uint8_t len = write_i32_fast((uint8_t *)&dummy, 0, type);
-			
+			uint8_t len = get_type_size(type);
 			if(offset + len > sizeof(obj->data)) return;
 			
 			value = 0;

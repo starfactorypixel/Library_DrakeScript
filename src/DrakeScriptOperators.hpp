@@ -497,5 +497,24 @@ namespace DrakeScript
 
 		__builtin_unreachable();
 	}
+	
+	static inline uint8_t get_type_size(var_type_t type)
+	{
+		switch(type)
+		{
+			case VAR_BYTE:
+			case VAR_U8:
+			case VAR_S8:
+				return 1;
+			case VAR_U16:
+			case VAR_S16:
+				return 2;
+			case VAR_U32:
+			case VAR_S32:
+				return 4;
+		}
+		
+		__builtin_unreachable();
+	}
 
 };
