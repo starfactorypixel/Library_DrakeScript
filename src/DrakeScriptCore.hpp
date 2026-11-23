@@ -573,7 +573,6 @@ class DrakeScriptCore
 			if(offset + len > sizeof(obj->data)) return;
 			
 			memcpy(obj->data + offset, &value, len);
-			
 			return;
 		}
 		
@@ -597,7 +596,6 @@ class DrakeScriptCore
 			
 			value = 0;
 			memcpy(&value, obj->data + offset, len);
-			
 			return;
 		}
 
