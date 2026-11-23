@@ -449,7 +449,7 @@ namespace DrakeScript
 			}
 		}
 		
-		return 0;
+		__builtin_unreachable();
 	}
 	
 	static inline uint8_t write_i32_fast(uint8_t *dst, reg_type_t val, var_type_t type)
@@ -459,37 +459,43 @@ namespace DrakeScript
 			case VAR_BYTE:
 			case VAR_U8:
 			{
-				*(uint8_t *)dst = (uint8_t)val;
+				uint8_t v = (uint8_t)val;
+				memcpy(dst, &v, sizeof(v));
 				return 1;
 			}
 			case VAR_S8:
 			{
-				*(int8_t *)dst = (int8_t)val;
+				int8_t v = (int8_t)val;
+				memcpy(dst, &v, sizeof(v));
 				return 1;
 			}
 			case VAR_U16:
 			{
-				*(uint16_t *)dst = (uint16_t)val;
+				uint16_t v = (uint16_t)val;
+				memcpy(dst, &v, sizeof(v));
 				return 2;
 			}
 			case VAR_S16:
 			{
-				*(int16_t *)dst = (int16_t)val;
+				int16_t v = (int16_t)val;
+				memcpy(dst, &v, sizeof(v));
 				return 2;
 			}
 			case VAR_U32:
 			{
-				*(uint32_t *)dst = (uint32_t)val;
+				uint32_t v = (uint32_t)val;
+				memcpy(dst, &v, sizeof(v));
 				return 4;
 			}
 			case VAR_S32:
 			{
-				*(int32_t *)dst = (int32_t)val;
+				int32_t v = (int32_t)val;
+				memcpy(dst, &v, sizeof(v));
 				return 4;
 			}
 		}
 
-		return 0;
+		__builtin_unreachable();
 	}
 
 };
